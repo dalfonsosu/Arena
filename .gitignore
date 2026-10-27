@@ -1,0 +1,12 @@
+# sistema / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# dependencias y artefactos de pruebas locales
+node_modules/
+package-lock.json
+*.log
+screenshots/
