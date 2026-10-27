@@ -23,7 +23,17 @@ python3 -m http.server 8000
 # luego abre http://localhost:8000
 ```
 
-También se puede publicar tal cual en GitHub Pages (rama `main`, carpeta raíz).
+## GitHub Pages
+
+La versión publicada está en **<https://dalfonsosu.github.io/Arena/>**.
+
+El flujo de trabajo [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
+publica automáticamente el contenido estático de la raíz cada vez que se integran
+cambios en `main`; también se puede ejecutar manualmente desde la pestaña
+**Actions**. Todas las rutas de `index.html` son relativas, así que el juego
+funciona tanto en la ruta `/Arena/` de GitHub Pages como en un servidor local.
+`.nojekyll` evita que Jekyll procese el sitio si posteriormente se cambia a una
+publicación basada en una rama.
 
 ### Modos
 
