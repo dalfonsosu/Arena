@@ -1,0 +1,70 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Verify local assets
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urlparse
+
+          root = Path('.')
+
+          class LocalRefs(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.refs = []
+
+              def handle_starttag(self, tag, attrs):
+                  for name, value in attrs:
+                      if name not in ('href', 'src') or not value:
+                          continue
+                      parsed = urlparse(value)
+                      if parsed.scheme or parsed.netloc or value.startswith(('/', '#')):
+                          continue
+                      self.refs.append(parsed.path)
+
+          parser = LocalRefs()
+          parser.feed((root / 'index.html').read_text(encoding='utf-8'))
+          refs = sorted(set(ref for ref in parser.refs if ref))
+          missing = [ref for ref in refs if not (root / ref).is_file()]
+          if missing:
+              raise SystemExit('Missing files referenced by index.html: ' + ', '.join(missing))
+          print(f'Verified {len(refs)} local references.')
+          PY
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
