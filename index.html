@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#08120c" />
+<title>CaféScan MK-II · el juego del ojo cafetero</title>
+<meta name="description" content="Mini juego retro: identifica plantas de café enfermas con la cámara de tu cajita y su pantalla LED." />
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="room" aria-hidden="true">
+  <div class="room-glow"></div>
+  <div class="room-floor"></div>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32" width="26" height="26"><path d="M16 3c6 4 9 8 9 13a9 9 0 1 1-18 0C7 11 10 7 16 3Z" fill="#b6ff8a"/><path d="M16 8v16M16 13l4.5-3.5M16 18l-4.5-3.5M16 22l4-3" stroke="#08120c" stroke-width="1.7" fill="none" stroke-linecap="round"/></svg>
+    </span>
+    <div class="brand-text">
+      <strong>CAFÉSCAN</strong>
+      <span>MK-II</span>
+    </div>
+  </div>
+
+  <div class="device-readouts" aria-hidden="true">
+    <span class="readout"><i class="ico-wifi"></i><b>WiFi</b></span>
+    <span class="readout"><i class="ico-batt"><span id="batt-fill"></span></i><b id="hud-batt">100%</b></span>
+    <span class="readout readout-leds"><span class="mini-led" data-led="1"></span><span class="mini-led" data-led="2"></span><span class="mini-led" data-led="3"></span><span class="mini-led" data-led="4"></span><span class="mini-led" data-led="5"></span></span>
+    <span class="readout clock"><b id="hud-clock">--:--</b></span>
+  </div>
+
+  <nav class="top-actions">
+    <button class="icon-btn" id="btn-audio" type="button" aria-pressed="true" title="Sonido (M)" aria-label="Activar o desactivar sonido">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4Z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.7 6a8.6 8.6 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-help" type="button" title="Cómo jugar (H)" aria-label="Cómo jugar">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M9.5 9.2a2.6 2.6 0 1 1 3.6 2.4c-.7.3-1.1.9-1.1 1.7v.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="12" cy="17" r="1.15" fill="currentColor"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-full" type="button" title="Pantalla completa (F)" aria-label="Pantalla completa">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+    </button>
+  </nav>
+</header>
+
+<main class="stage">
+  <section class="console" id="console" aria-label="Consola CaféScan MK-II">
+    <div class="console-screws" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+    <div class="console-bar">
+      <span class="console-mode" id="console-mode">MODO · MENÚ</span>
+      <span class="console-label">CAFÉSCAN MK-II · UNIDAD DE CAMPO</span>
+      <span class="console-serial">SN 0042-CO</span>
+    </div>
+
+    <div class="device">
+      <div class="device-side">
+        <div class="led-strip" id="led-strip" role="img" aria-label="Indicador LED de estado">
+          <span class="led" data-led="1"></span>
+          <span class="led" data-led="2"></span>
+          <span class="led" data-led="3"></span>
+          <span class="led" data-led="4"></span>
+          <span class="led" data-led="5"></span>
+        </div>
+        <span class="led-legend">ESTADO</span>
+        <div class="grille" aria-hidden="true"></div>
+      </div>
+
+      <div class="screen-bezel">
+        <div class="camera" aria-hidden="true" title="Cámara de la cajita">
+          <span class="lens"><span class="lens-core"></span></span>
+          <span class="cam-led"></span>
+        </div>
+
+        <div class="screen" id="screen">
+          <div class="screen-ui">
+            <div class="screen-top">
+              <span class="screen-mode" id="screen-mode">MENÚ</span>
+              <span class="screen-right">
+                <span id="screen-lives" class="screen-lives">♥♥♥</span>
+                <span id="screen-timer" class="screen-timer">--</span>
+              </span>
+            </div>
+
+            <div class="screen-body">
+              <!-- JUEGO -->
+              <section class="panel panel-play" id="panel-play" aria-label="Partida">
+                <div class="play-grid">
+                  <div class="viewfinder">
+                    <canvas id="cam" width="760" height="560" aria-label="Imagen de la hoja de café vista por la cámara"></canvas>
+                    <div class="vf-frame" aria-hidden="true">
+                      <span class="vf-corner tl"></span><span class="vf-corner tr"></span>
+                      <span class="vf-corner bl"></span><span class="vf-corner br"></span>
+                      <span class="vf-cross"></span>
+                      <span class="vf-rec">REC</span>
+                      <span class="vf-id" id="vf-id">M-000</span>
+                      <span class="vf-zoom" id="vf-zoom">1.0×</span>
+                    </div>
+                    <div class="scan-beam" id="scan-beam" aria-hidden="true"></div>
+                    <div class="scan-flash" id="scan-flash" aria-hidden="true"></div>
+                    <div class="vf-readout" id="vf-readout" aria-live="polite"></div>
+                    <div class="vf-hint" id="vf-hint">PASO 1 · Acerca la cámara</div>
+                  </div>
+
+                  <div class="play-side">
+                    <p class="play-question">¿Qué le ves a esta hoja?</p>
+                    <div class="answers" id="answers" role="group" aria-label="Opciones de diagnóstico"></div>
+                    <div class="field-note" id="field-note">
+                      <span class="field-note-label">Notas de campo</span>
+                      <p id="field-note-text">Aún sin escanear. Pulsa ACERCAR para ver el detalle del envés.</p>
+                    </div>
+                    <div class="play-bar">
+                      <button class="mini-btn" id="btn-hint" type="button">Pista <kbd>P</kbd></button>
+                      <span class="play-meta" id="play-meta">Racha 0</span>
+                      <button class="mini-btn" id="btn-skip" type="button">Saltar <kbd>S</kbd></button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- MENÚ -->
+              <section class="panel panel-menu is-active" id="panel-menu" aria-label="Menú principal">
+                <div class="menu-head">
+                  <span class="eyebrow">SIMULADOR DE CAMPO · v2.0</span>
+                  <h1>El ojo <em>cafetero</em></h1>
+                  <p>Tu cajita con cámara y pantalla LED ahora es una lupa fitosanitaria. Mira la hoja, escanea y decide qué tiene.</p>
+                </div>
+
+                <div class="modes" id="modes" role="list"></div>
+
+                <div class="guide" id="guide-menu" aria-label="Guía rápida de síntomas"></div>
+
+                <div class="menu-foot">
+                  <span class="record" id="record-line">Récord: 0 pts</span>
+                  <span class="keyhint"><kbd>↑</kbd><kbd>↓</kbd> elegir · <kbd>Enter</kbd> entrar</span>
+                </div>
+              </section>
+
+              <!-- RESULTADO -->
+              <section class="panel panel-reveal" id="panel-reveal" aria-label="Diagnóstico">
+                <div class="reveal-grid">
+                  <div class="reveal-fig">
+                    <canvas id="thumb" width="460" height="460" aria-label="Hoja diagnosticada"></canvas>
+                    <div class="ribbon" id="reveal-ribbon">¡CORRECTO!</div>
+                    <div class="reveal-points" id="reveal-points">+120</div>
+                  </div>
+
+                  <div class="reveal-info">
+                    <span class="eyebrow" id="reveal-eyebrow">MUESTRA M-000 · HOJA</span>
+                    <h2 id="reveal-name">Roya del café</h2>
+                    <div class="tags">
+                      <span class="tag" id="reveal-type">Hongo</span>
+                      <span class="tag tag-conf" id="reveal-conf">coincidencia 92%</span>
+                    </div>
+                    <ul class="symptoms" id="reveal-symptoms"></ul>
+                    <p class="cure"><b>Manejo:</b> <span id="reveal-cure"></span></p>
+                    <p class="dato" id="reveal-dato"></p>
+                    <div class="reveal-actions">
+                      <button class="btn btn-primary" id="btn-next" type="button">Siguiente muestra <kbd>Enter</kbd></button>
+                      <button class="btn btn-ghost" id="btn-menu" type="button">Menú</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="guide" id="guide-reveal" aria-label="Guía rápida de síntomas"></div>
+              </section>
+
+              <!-- TUTORIAL -->
+              <section class="panel panel-tutorial" id="panel-tutorial" aria-label="Cómo jugar">
+                <div class="tut-head">
+                  <span class="eyebrow">MANUAL RÁPIDO</span>
+                  <h2>Cómo usar la cajita</h2>
+                </div>
+                <ol class="tut-steps">
+                  <li><b>1</b><div><strong>Mira la hoja.</strong> La cámara enfoca una hoja de café: manchas, polvo, galerías o puntitos.</div></li>
+                  <li><b>2</b><div><strong>Escanea.</strong> Acerca con <kbd>Espacio</kbd> (o el botón <em>Acercar</em>): la lupa revela detalles del envés.</div></li>
+                  <li><b>3</b><div><strong>Diagnostica.</strong> Elige entre cuatro opciones. Sin prisa: la primera respuesta cuenta.</div></li>
+                  <li><b>4</b><div><strong>Aprende.</strong> Cada resultado te dice síntomas, manejo y un dato, para que la próxima hoja no se te escape.</div></li>
+                </ol>
+                <div class="tut-notes">
+                  <p><b>Teclas:</b> <kbd>1</kbd>–<kbd>4</kbd> responder · <kbd>Espacio</kbd> acercar · <kbd>P</kbd> pista · <kbd>M</kbd> sonido · <kbd>Esc</kbd> pausa.</p>
+                  <p><b>Modos:</b> Práctica no castiga errores · Campo tiene 3 vidas y reloj · Café de oro suma el doble, sin pistas.</p>
+                  <p><b>Ojo:</b> las tres primeras opciones no son al azar; una de ellas es un síntoma que se parece de verdad.</p>
+                </div>
+                <button class="btn btn-primary" id="btn-tut-back" type="button">Entendido</button>
+              </section>
+
+              <!-- GAME OVER -->
+              <section class="panel panel-over" id="panel-over" aria-label="Fin de la partida">
+                <div class="over-head">
+                  <span class="eyebrow" id="over-eyebrow">FIN DEL TURNO</span>
+                  <h2 id="over-title">Buen ojo cafetero</h2>
+                  <p id="over-sub">La cajita se apaga por hoy.</p>
+                </div>
+                <div class="over-score">
+                  <strong id="over-score">0</strong>
+                  <span>puntos</span>
+                  <em id="over-record"></em>
+                </div>
+                <div class="over-stats">
+                  <div><b id="over-correct">0</b><span>aciertos</span></div>
+                  <div><b id="over-precision">0%</b><span>precisión</span></div>
+                  <div><b id="over-streak">0</b><span>mejor racha</span></div>
+                  <div><b id="over-rounds">0</b><span>muestras</span></div>
+                </div>
+                <div class="over-actions">
+                  <button class="btn btn-primary" id="btn-again" type="button">Jugar otra vez <kbd>Enter</kbd></button>
+                  <button class="btn btn-ghost" id="btn-over-menu" type="button">Menú</button>
+                </div>
+              </section>
+
+              <!-- PAUSA -->
+              <section class="panel panel-pause" id="panel-pause" aria-label="Pausa">
+                <div class="pause-box">
+                  <span class="eyebrow">PAUSA</span>
+                  <h2>Respira, caficultor</h2>
+                  <p>La muestra no se va a mover. Tómate tu tinto.</p>
+                  <div class="pause-actions">
+                    <button class="btn btn-primary" id="btn-resume" type="button">Seguir <kbd>Esc</kbd></button>
+                    <button class="btn btn-ghost" id="btn-quit" type="button">Salir al menú</button>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="screen-foot">
+              <span id="screen-foot-left">◂ SISTEMA LISTO</span>
+              <span id="screen-foot-right">SIMULACIÓN · NO REEMPLAZA UN TÉCNICO</span>
+            </div>
+            <div class="scanlines" aria-hidden="true"></div>
+            <div class="screen-glare" aria-hidden="true"></div>
+          </div>
+        </div>
+
+        <div class="bezel-brand" aria-hidden="true">CAFÉSCAN · COLOMBIA · 4.5″ LED</div>
+      </div>
+
+      <div class="device-side device-side-right">
+        <span class="dial" aria-hidden="true"><span></span></span>
+        <span class="device-tag">ENFOQUE<br>AUTO</span>
+        <div class="speaker" aria-hidden="true"></div>
+        <span class="device-tag">USB-C<br>5V</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="phys-buttons">
+        <button class="phys" id="btn-up" type="button" aria-label="Arriba"><span class="tri up"></span></button>
+        <button class="phys" id="btn-down" type="button" aria-label="Abajo"><span class="tri down"></span></button>
+      </div>
+      <div class="phys-main">
+        <button class="phys phys-wide" id="btn-scan" type="button"><span class="phys-label">ACERCAR</span><span class="phys-sub">lupa / escanear</span></button>
+        <button class="phys phys-wide phys-ok" id="btn-ok" type="button"><span class="phys-label">OK</span><span class="phys-sub">confirmar</span></button>
+      </div>
+      <div class="controls-hint">
+        También con teclado: <kbd>↑</kbd><kbd>↓</kbd><kbd>1</kbd><kbd>4</kbd><kbd>Espacio</kbd><kbd>Enter</kbd>
+      </div>
+    </div>
+  </section>
+
+  <aside class="notes">
+    <div class="note-card">
+      <span class="eyebrow">LA CAJITA</span>
+      <p><b>ESP32-CAM</b> + pantalla <b>ST7735/ILI9341</b>, 3 botones y 5 LEDs. El navegador simula la óptica; el hardware solo necesita mostrar el canvas y mandar los botones.</p>
+      <ul class="pins">
+        <li><span>Botón A</span><code>GPIO 12</code></li>
+        <li><span>Botón B</span><code>GPIO 13</code></li>
+        <li><span>Botón OK</span><code>GPIO 14</code></li>
+        <li><span>LEDs</span><code>GPIO 25–33</code></li>
+        <li><span>Pantalla</span><code>SPI 18/23/5</code></li>
+      </ul>
+      <a class="link" href="docs/hardware.md">Ver plano de conexión →</a>
+    </div>
+    <div class="note-card note-card-soft">
+      <span class="eyebrow">SIN HARDWARE</span>
+      <p>Funciona igual en el celular o el computador. El detalle de las hojas se genera al vuelo: siempre hay una muestra nueva.</p>
+      <button class="btn btn-ghost btn-small" id="btn-tutorial-2" type="button">Cómo jugar</button>
+    </div>
+  </aside>
+</main>
+
+<footer class="footer">
+  <p><b>CaféScan MK-II</b> · juego educativo de reconocimiento de síntomas del café. Las muestras son ilustraciones generadas; no sustituyen el diagnóstico de un técnico o extensionista.</p>
+  <p class="footer-links"><a href="docs/hardware.md">Hardware</a> · <a href="docs/juego.md">Cómo está hecho el juego</a> · <a href="README.md">README</a></p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/specimens.js"></script>
+<script src="js/sfx.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
